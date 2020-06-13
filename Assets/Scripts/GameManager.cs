@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.UI;
 using System;
 
@@ -9,6 +8,7 @@ public class GameManager : MonoBehaviour
 	public GameObject playerPrefab;
 	public Text continueText;
 	public Text scoreText;
+	public Button pauseButton;
 
 	private float timeElapsed = 0f;
 	private float bestTime = 0f;
@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
 	private GameObject floor;
 	private Spawner spawner;
 	private bool beatBestTime;
+	private bool isPlayerKilled;
 
 	void Awake()
 	{
@@ -39,8 +40,6 @@ public class GameManager : MonoBehaviour
 		pos.y = -((Screen.height / PixelPerfectCamera.pixelsToUnits) / 2) + (floorHeight / 2);
 		floor.transform.position = pos;
 
-		spawner.active = false;
-
 		Time.timeScale = 0;
 
 		continueText.text = "PRESS ANY BUTTON TO START";
@@ -51,12 +50,17 @@ public class GameManager : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		if (!gameStarted && Time.timeScale == 0)
+		if (!gameStarted && Time.timeScale == 0 && !isPlayerKilled)
 		{
-
-			if (Input.anyKeyDown)
+			timeManager.ManipulateTime(1, 1f);
+			ResetGame();
+		} else
+		{
+			if (isPlayerKilled && Input.anyKeyDown)
 			{
+				isPlayerKilled = false;
 				timeManager.ManipulateTime(1, 1f);
+				pauseButton.interactable = true;
 				ResetGame();
 			}
 		}
@@ -74,7 +78,8 @@ public class GameManager : MonoBehaviour
 
 			var textColor = beatBestTime ? "#FF0" : "#FFF";
 
-			scoreText.text = "TIME: " + FormatTime(timeElapsed) + "\n<color=" + textColor + ">BEST: " + FormatTime(bestTime) + "</color>";
+			scoreText.text = "TIME: " + FormatTime(timeElapsed) + 
+				"\n<color=" + textColor + ">BEST: " + FormatTime(bestTime) + "</color>";
 		} else
 		{
 			timeElapsed += Time.deltaTime;
@@ -85,6 +90,7 @@ public class GameManager : MonoBehaviour
 	void OnPlayerKilled()
 	{
 		spawner.active = false;
+		isPlayerKilled = true;
 
 		var playerDestroyScript = player.GetComponent<DestroyOffscreen>();
 		playerDestroyScript.DestroyCallback -= OnPlayerKilled;
@@ -94,6 +100,7 @@ public class GameManager : MonoBehaviour
 		gameStarted = false;
 
 		continueText.text = "PRESS ANY BUTTON TO RESTART";
+		pauseButton.interactable = false;
 
 		if (timeElapsed > bestTime)
 		{

@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Jump : MonoBehaviour
 {
@@ -22,7 +20,7 @@ public class Jump : MonoBehaviour
     {
         if (inputState.standing)
         {
-            if (inputState.actionButton)
+            if (inputState.actionButton && !EventSystem.current.currentSelectedGameObject)
             {
                 body2d.velocity = new Vector2(transform.position.x < 0 ? forwardSpeed : 0, jumpSpeed);
             }
